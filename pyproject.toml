@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "bpp"
+version = "0.1.0"
+description = ""
+authors = ["sacklippe <jonas.kleppich@voltfang.de>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
