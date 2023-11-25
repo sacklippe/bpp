@@ -293,6 +293,9 @@ diskcache==5.6.3 ; python_version >= "3.10" and python_version < "4.0" \
 dwave-cloud-client==0.11.1 ; python_version >= "3.10" and python_version < "4.0" \
     --hash=sha256:5a7aa6a7f924959f86b4ee1959cccca51e9e3ee754ecfc26906da7a87c160f43 \
     --hash=sha256:cad73cac2a49e9d448f2b4143b8829d3596c3f394e4f24fa0895622f089ec2b2
+dwave-neal==0.6.0 ; python_version >= "3.10" and python_version < "4.0" \
+    --hash=sha256:8b7d89f0c52de6ac80e0f580ec272f6409b1cf9edb12250d22429425a13bd935 \
+    --hash=sha256:8ce51fee3339195df1ab69920fdb5afc496b5fd945e487fad3547c983d90c564
 dwave-networkx==0.8.14 ; python_version >= "3.10" and python_version < "4.0" \
     --hash=sha256:03f255192cbb0e3472fdf3cd70b8b6f58d4d71d4b0aeb04746ee4ece9a771318 \
     --hash=sha256:a1b652c2d512bf6f8dfce4634000e7387d6f8fd9dd7716102b1cdbc0412cdb7d

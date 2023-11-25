@@ -514,6 +514,20 @@ mocks = ["dwave-networkx (>=0.8.9)"]
 test = ["coverage", "mock", "numpy", "requests-mock"]
 
 [[package]]
+name = "dwave-neal"
+version = "0.6.0"
+description = "General Ising graph simulated annealing solver"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "dwave-neal-0.6.0.tar.gz", hash = "sha256:8ce51fee3339195df1ab69920fdb5afc496b5fd945e487fad3547c983d90c564"},
+    {file = "dwave_neal-0.6.0-py3-none-any.whl", hash = "sha256:8b7d89f0c52de6ac80e0f580ec272f6409b1cf9edb12250d22429425a13bd935"},
+]
+
+[package.dependencies]
+dwave-samplers = ">=1.0.0,<2.0.0"
+
+[[package]]
 name = "dwave-networkx"
 version = "0.8.14"
 description = "A NetworkX extension providing graphs and algorithms relevent to working with the D-Wave System"
@@ -2082,4 +2096,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "8a8e62ec1984ad987642a50169f1b609346c957e5fc0a065b8aed5b8ce3c61f5"
+content-hash = "36cfac35c21bbd4a017c84cecb2e9f53922ee676f47836168d6e46a67383e298"

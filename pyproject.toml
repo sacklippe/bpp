@@ -12,6 +12,8 @@ numpy = "^1.26.2"
 matplotlib = "^3.8.2"
 dwave-system = "^1.21.0"
 ipykernel = "^6.26.0"
+dimod = "^0.12.13"
+dwave-neal = "^0.6.0"
 
 
 [build-system]
