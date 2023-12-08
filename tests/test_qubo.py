@@ -2,605 +2,237 @@ import unittest
 
 import numpy as np
 
-from bpp.params import BppParams
-from bpp.qubo import (formulate_Q, formulate_Qss, formulate_Qxs, formulate_Qxx,
-                      formulate_Qxy, formulate_Qys, formulate_Qyy)
+from bpp.qubo import Qubo
 
 
-class TestQUBO(unittest.TestCase):
+class TestQubo(unittest.TestCase):
     def setUp(self) -> None:
-        item_weight = np.array([4, 5, 5])
-        bin_capacity = np.array([5, 5, 5])
-        self.params = BppParams(item_weight=item_weight, bin_capacity=bin_capacity)
-        self.lambda_eq = 1
-        self.lambda_ineq = 1
+        # abstract example
+        items = [1, 2, 3, 4]
+        bins = [5, 6, 7]
+        lambda_ec = [1.0, 1.0, 1.0, 1.0]
+        lambda_ic = [2.0, 2.0, 2.0]
+        self.qubo = Qubo(items, bins, lambda_ec, lambda_ic)
 
-    def test_formulate_Qxx(self) -> None:
-        targ_Qxx = np.array(
+        # concrete example
+        bins = [5, 5]
+        items = [5, 5]
+        lambda_ec = [1, 1]
+        lambda_ic = [1, 1]
+        self.qubo_concrete = Qubo(items, bins, lambda_ec, lambda_ic)
+
+    def test_n_bins(self) -> None:
+        self.assertEqual(self.qubo.n_bins, 3)
+
+    def test_n_items(self) -> None:
+        self.assertEqual(self.qubo.n_items, 4)
+
+    def test_N(self) -> None:
+        self.assertListEqual(list(self.qubo.N), [3, 3, 3])
+
+    def test_offset(self) -> None:
+        self.assertEqual(self.qubo.offset, 4)
+
+    def test_x_labels(self) -> None:
+        labels = [
+            "x[0,0]",
+            "x[0,1]",
+            "x[0,2]",
+            "x[1,0]",
+            "x[1,1]",
+            "x[1,2]",
+            "x[2,0]",
+            "x[2,1]",
+            "x[2,2]",
+            "x[3,0]",
+            "x[3,1]",
+            "x[3,2]",
+        ]
+        self.assertListEqual(self.qubo.x_labels, labels)
+
+    def test_y_labels(self) -> None:
+        labels = ["y[0]", "y[1]", "y[2]"]
+        self.assertListEqual(self.qubo.y_labels, labels)
+
+    def test_s_labels(self) -> None:
+        labels = [
+            "s[0,0]",
+            "s[0,1]",
+            "s[0,2]",
+            "s[1,0]",
+            "s[1,1]",
+            "s[1,2]",
+            "s[2,0]",
+            "s[2,1]",
+            "s[2,2]",
+        ]
+        self.assertListEqual(self.qubo.s_labels, labels)
+
+    def test_x_hat_labels(self) -> None:
+        labels = [
+            "x[0,0]",
+            "x[0,1]",
+            "x[0,2]",
+            "x[1,0]",
+            "x[1,1]",
+            "x[1,2]",
+            "x[2,0]",
+            "x[2,1]",
+            "x[2,2]",
+            "x[3,0]",
+            "x[3,1]",
+            "x[3,2]",
+            "y[0]",
+            "y[1]",
+            "y[2]",
+            "s[0,0]",
+            "s[0,1]",
+            "s[0,2]",
+            "s[1,0]",
+            "s[1,1]",
+            "s[1,2]",
+            "s[2,0]",
+            "s[2,1]",
+            "s[2,2]",
+        ]
+        self.assertListEqual(self.qubo.x_hat_labels, labels)
+
+    def test_Q_size(self) -> None:
+        self.assertEqual(self.qubo.Q_size, len(self.qubo.x_hat_labels))
+
+    def test_x2global(self) -> None:
+        self.assertEqual(self.qubo.x2global(0, 0), 0)
+        self.assertEqual(self.qubo.x2global(0, 2), 2)
+        self.assertEqual(self.qubo.x2global(3, 0), 9)
+        self.assertEqual(self.qubo.x2global(3, 2), 11)
+
+    def test_y2global(self) -> None:
+        self.assertEqual(self.qubo.y2global(0), 12)
+        self.assertEqual(self.qubo.y2global(2), 14)
+
+    def test_s2global(self) -> None:
+        self.assertEqual(self.qubo.s2global(0, 0), 15)
+        self.assertEqual(self.qubo.s2global(0, 2), 17)
+        self.assertEqual(self.qubo.s2global(1, 0), 18)
+        self.assertEqual(self.qubo.s2global(2, 2), 23)
+
+    def test_Q_shape(self) -> None:
+        self.assertEqual(self.qubo.Q.shape, (24, 24))
+
+    def test_Qxx_shape(self) -> None:
+        self.assertEqual(self.qubo.Qxx.shape, (12, 12))
+
+    def test_Qxy_shape(self) -> None:
+        self.assertEqual(self.qubo.Qxy.shape, (12, 3))
+
+    def test_Qxs_shape(self) -> None:
+        self.assertEqual(self.qubo.Qxs.shape, (12, 9))
+
+    def test_Qyy_shape(self) -> None:
+        self.assertEqual(self.qubo.Qyy.shape, (3, 3))
+
+    def test_Qys_shape(self) -> None:
+        self.assertEqual(self.qubo.Qys.shape, (3, 9))
+
+    def test_Qss_shape(self) -> None:
+        self.assertEqual(self.qubo.Qss.shape, (9, 9))
+
+    def test_Q(self) -> None:
+        Q = np.array(
             [
-                [1.0, 2.0, 2.0, 40.0, 0.0, 0.0, 40.0, 0.0, 0.0],
-                [0.0, 1.0, 2.0, 0.0, 40.0, 0.0, 0.0, 40.0, 0.0],
-                [0.0, 0.0, 1.0, 0.0, 0.0, 40.0, 0.0, 0.0, 40.0],
-                [0.0, 0.0, 0.0, 2.125, 2.0, 2.0, 50.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0, 2.125, 2.0, 0.0, 50.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0, 0.0, 2.125, 0.0, 0.0, 50.0],
-                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.125, 2.0, 2.0],
-                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.125, 2.0],
-                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.125],
+                [24.0, 2.0, 50.0, 0.0, -50.0, 0.0, 10.0, 20.0, 40.0, 0.0, 0.0, 0.0],
+                [0.0, 24.0, 0.0, 50.0, 0.0, -50.0, 0.0, 0.0, 0.0, 10.0, 20.0, 40.0],
+                [0.0, 0.0, 24.0, 2.0, -50.0, 0.0, 10.0, 20.0, 40.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 24.0, 0.0, -50.0, 0.0, 0.0, 0.0, 10.0, 20.0, 40.0],
+                [0.0, 0.0, 0.0, 0.0, 26.0, 0.0, -10.0, -20.0, -40.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 26.0, 0.0, 0.0, 0.0, -10.0, -20.0, -40.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 4.0, 8.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 16.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 16.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 4.0, 8.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 16.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 16.0],
             ]
         )
 
-        calc_Qxx = formulate_Qxx(self.params, self.lambda_eq, self.lambda_ineq)
-        self.assertTrue(np.array_equal(targ_Qxx, calc_Qxx))
+        self.assertEqual(self.qubo_concrete.Q.shape, (12, 12))
+        self.assertTrue(np.array_equal(self.qubo_concrete.Q, Q))
 
-    def test_forumlate_Qxy(self) -> None:
-        targ_Qxy = np.array(
+    def test_Qxx(self) -> None:
+        Qxx = np.array(
             [
-                [0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0],
-                [-5.0, 0.0, 0.0],
-                [0.0, -5.0, 0.0],
-                [0.0, 0.0, -5.0],
-                [-6.25, 0.0, 0.0],
-                [0.0, -6.25, 0.0],
-                [0.0, 0.0, -6.25],
-                [-6.25, 0.0, 0.0],
+                [24.0, 2.0, 50.0, 0.0],
+                [0.0, 24.0, 0.0, 50.0],
+                [0.0, 0.0, 24.0, 2.0],
+                [0.0, 0.0, 0.0, 24.0],
             ]
         )
 
-        calc_Qxy = formulate_Qxy(self.params, self.lambda_ineq)
-        self.assertTrue(np.array_equal(targ_Qxy, calc_Qxy))
+        self.assertEqual(self.qubo_concrete.Qxx.shape, (4, 4))
+        self.assertTrue(np.array_equal(self.qubo_concrete.Qxx, Qxx))
 
-    def test_formulate_Qxs(self) -> None:
-        targ_Qxs = np.array(
+    def test_Qxy(self) -> None:
+        Qxy = np.array(
             [
-                [1.0, 2.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 1.0, 2.0, 4.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 4.0],
-                [1.25, 2.5, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 1.25, 2.5, 5.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.25, 2.5, 5.0],
-                [1.25, 2.5, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 1.25, 2.5, 5.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.25, 2.5, 5.0],
+                [-50.0, 0.0],
+                [0.0, -50.0],
+                [-50.0, 0.0],
+                [0.0, -50.0],
             ]
         )
 
-        calc_Qxs = formulate_Qxs(self.params, self.lambda_ineq)
-        self.assertTrue(np.array_equal(targ_Qxs, calc_Qxs))
+        self.assertEqual(self.qubo_concrete.Qxy.shape, (4, 2))
+        self.assertTrue(np.array_equal(self.qubo_concrete.Qxy, Qxy))
 
-    def test_formulate_Qyy(self) -> None:
-        targ_Qyy = np.array(
+    def test_Qxs(self) -> None:
+        Qxs = np.array(
             [
-                [4.125, 0.0, 0.0],
-                [0.0, 4.125, 0.0],
-                [0.0, 0.0, 4.125],
+                [10.0, 20.0, 40.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 10.0, 20.0, 40.0],
+                [10.0, 20.0, 40.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 10.0, 20.0, 40.0],
             ]
         )
 
-        calc_Qyy = formulate_Qyy(self.params, self.lambda_ineq)
-        self.assertTrue(np.array_equal(targ_Qyy, calc_Qyy))
+        self.assertEqual(self.qubo_concrete.Qxs.shape, (4, 6))
+        self.assertTrue(np.array_equal(self.qubo_concrete.Qxs, Qxs))
 
-    def test_formulate_Qys(self) -> None:
-        targ_Qys = np.array(
+    def test_Qyy(self) -> None:
+        Qyy = np.array(
             [
-                [-2.5, -5.0, -10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, -2.5, -5.0, -10.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -2.5, -5.0, -10.0],
-            ]
-        )
-        calc_Qys = formulate_Qys(self.params, self.lambda_ineq)
-        self.assertTrue(np.array_equal(targ_Qys, calc_Qys))
-
-    def test_forumlate_Qss(self) -> None:
-        targ_Qss = np.array(
-            [
-                [0.125, 0.5, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                [0.0, 0.5, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.125, 0.5, 1.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0, 0.5, 2.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.125, 0.5, 1.0],
-                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 2.0],
-                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0],
+                [26.0, 0.0],
+                [0.0, 26.0],
             ]
         )
 
-        calc_Qss = formulate_Qss(self.params, self.lambda_ineq)
-        self.assertTrue(np.array_equal(targ_Qss, calc_Qss))
+        self.assertEqual(self.qubo_concrete.Qyy.shape, (2, 2))
+        self.assertTrue(np.array_equal(self.qubo_concrete.Qyy, Qyy))
 
-    def test_formulate_Q(self) -> None:
-        targ_Q = np.array(
+    def test_Qys(self) -> None:
+        Qys = np.array(
             [
-                [
-                    1.0,
-                    2.0,
-                    2.0,
-                    40.0,
-                    0.0,
-                    0.0,
-                    40.0,
-                    0.0,
-                    0.0,
-                    -5.0,
-                    0.0,
-                    0.0,
-                    1.0,
-                    2.0,
-                    4.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                ],
-                [
-                    0.0,
-                    1.0,
-                    2.0,
-                    0.0,
-                    40.0,
-                    0.0,
-                    0.0,
-                    40.0,
-                    0.0,
-                    0.0,
-                    -5.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    1.0,
-                    2.0,
-                    4.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                ],
-                [
-                    0.0,
-                    0.0,
-                    1.0,
-                    0.0,
-                    0.0,
-                    40.0,
-                    0.0,
-                    0.0,
-                    40.0,
-                    0.0,
-                    0.0,
-                    -5.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    1.0,
-                    2.0,
-                    4.0,
-                ],
-                [
-                    0.0,
-                    0.0,
-                    0.0,
-                    2.125,
-                    2.0,
-                    2.0,
-                    50.0,
-                    0.0,
-                    0.0,
-                    -6.25,
-                    0.0,
-                    0.0,
-                    1.25,
-                    2.5,
-                    5.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                ],
-                [
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    2.125,
-                    2.0,
-                    0.0,
-                    50.0,
-                    0.0,
-                    0.0,
-                    -6.25,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    1.25,
-                    2.5,
-                    5.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                ],
-                [
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    2.125,
-                    0.0,
-                    0.0,
-                    50.0,
-                    0.0,
-                    0.0,
-                    -6.25,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    1.25,
-                    2.5,
-                    5.0,
-                ],
-                [
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    2.125,
-                    2.0,
-                    2.0,
-                    -6.25,
-                    0.0,
-                    0.0,
-                    1.25,
-                    2.5,
-                    5.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                ],
-                [
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    2.125,
-                    2.0,
-                    0.0,
-                    -6.25,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    1.25,
-                    2.5,
-                    5.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                ],
-                [
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    2.125,
-                    0.0,
-                    0.0,
-                    -6.25,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    1.25,
-                    2.5,
-                    5.0,
-                ],
-                [
-                    -0.0,
-                    0.0,
-                    0.0,
-                    -0.0,
-                    0.0,
-                    0.0,
-                    -0.0,
-                    0.0,
-                    0.0,
-                    4.125,
-                    0.0,
-                    0.0,
-                    -1.25,
-                    -2.5,
-                    -5.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                ],
-                [
-                    0.0,
-                    -0.0,
-                    0.0,
-                    0.0,
-                    -0.0,
-                    0.0,
-                    0.0,
-                    -0.0,
-                    0.0,
-                    0.0,
-                    4.125,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    -1.25,
-                    2.5,
-                    -5.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                ],
-                [
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    -0.0,
-                    0.0,
-                    0.0,
-                    -0.0,
-                    0.0,
-                    0.0,
-                    4.125,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    -1.25,
-                    -2.5,
-                    -5.0,
-                ],
-                [
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    -0.0,
-                    0.0,
-                    0.0,
-                    0.125,
-                    0.5,
-                    1.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                ],
-                [
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    -0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.5,
-                    2.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                ],
-                [
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    -0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    2.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                ],
-                [
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    -0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.125,
-                    0.5,
-                    1.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                ],
-                [
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    -0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.5,
-                    2.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                ],
-                [
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    -0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    2.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                ],
-                [
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    -0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.125,
-                    0.5,
-                    1.0,
-                ],
-                [
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    -0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.5,
-                    2.0,
-                ],
-                [
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    -0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    2.0,
-                ],
+                [-10.0, -20.0, -40.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, -10.0, -20.0, -40.0],
             ]
         )
 
-        calc_Q = formulate_Q(self.params, self.lambda_eq, self.lambda_ineq)
-        self.assertTrue(np.array_equal(targ_Q, calc_Q))
+        self.assertEqual(self.qubo_concrete.Qys.shape, (2, 6))
+        self.assertTrue(np.array_equal(self.qubo_concrete.Qys, Qys))
+
+    def test_Qss(self) -> None:
+        Qss = np.array(
+            [
+                [1.0, 4.0, 8.0, 0.0, 0.0, 0.0],
+                [0.0, 4.0, 16.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 16.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0, 4.0, 8.0],
+                [0.0, 0.0, 0.0, 0.0, 4.0, 16.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 16.0],
+            ]
+        )
+
+        self.assertEqual(self.qubo_concrete.Qss.shape, (6, 6))
+        self.assertTrue(np.array_equal(self.qubo_concrete.Qss, Qss))
 
 
 if __name__ == "__main__":
