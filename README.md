@@ -1,7 +1,10 @@
-# The Bin Packing Problem (BPP)
+![Hackathon Logo](https://www.mss.rwth-aachen.de/global/show_picture.asp?id=aaaaaaaacfgbxee)
+
+---
+
+# The Bin Packing Problem (BPP) 
 
 In the [BPP](https://en.wikipedia.org/wiki/Bin_packing_problem), a collection of items must be stored in the minimum possible number of bins. In this case, the items have a weight associated and the bins are restricted to carry a maximum weight. This problem has many real-world applications such as loading trucks with a weight restriction, container scheduling, or design of FPGA chips. In terms of complexity, the BPP is an NP-hard problem and its formulation is given by
-
 $$
 \min \sum_{j=1}^m y_j,\tag{1}
 $$
