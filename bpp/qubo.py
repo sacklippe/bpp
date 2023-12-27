@@ -111,6 +111,43 @@ class Qubo:
 
         return self.n_bins * self.n_items + self.n_bins + sum(self.N[:j]) + k
 
+    def check_vadility(self, solution_vec: ArrayLike) -> bool:
+        """
+        Check if solution vector is valid.
+
+        Parameters
+        ----------
+        solution_vec : ArrayLike
+            Solution vector x_hat.
+
+        Returns
+        -------
+        bool
+        """
+        solution_vec = np.array(solution_vec)
+        x_size = self.n_items * self.n_bins
+        x = solution_vec[:x_size].reshape((self.n_items, self.n_bins))
+        i0 = self.y2global(0)
+        i1 = self.y2global(self.n_bins - 1) + 1
+        y = solution_vec[i0:i1]
+
+        item_is_uniquely_assigned = np.all(np.sum(x, axis=1) == 1)
+        if not item_is_uniquely_assigned:
+            return False
+
+        bin_loads = np.matmul(self.weights, x)
+        load_fits_capacity = np.all(bin_loads <= self.bin_capacities)
+        if not load_fits_capacity:
+            return False
+
+        x_select = np.array(bin_loads, dtype=bool)
+        y_select = np.array(y, dtype=bool)
+        bin_selection_is_valid = np.all(x_select == y_select)
+        if not bin_selection_is_valid:
+            return False
+
+        return True
+
     @property
     def Q_size(self) -> int:
         return (self.n_items + 1) * self.n_bins + sum(self.N)
