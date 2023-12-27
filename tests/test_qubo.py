@@ -97,6 +97,71 @@ class TestQubo(unittest.TestCase):
         ]
         self.assertListEqual(self.qubo.x_hat_labels, labels)
 
+    def test_check_vadility_with_valid_solution(self) -> None:
+        x = np.array(
+            [
+                [1, 0, 0],
+                [1, 0, 0],
+                [0, 1, 0],
+                [0, 0, 1],
+            ]
+        ).flatten()
+        y = np.array([1, 1, 1])
+        solution = np.concatenate((x, y, np.zeros(9)))
+        self.assertTrue(self.qubo.check_vadility(solution))
+
+    def test_check_vadility_with_double_bin_assignment(self) -> None:
+        x = np.array(
+            [
+                [1, 1, 0],  # double bin assignment
+                [1, 0, 0],
+                [0, 1, 0],
+                [0, 0, 1],
+            ]
+        ).flatten()
+        y = np.array([1, 1, 1])
+        solution = np.concatenate((x, y, np.zeros(9)))
+        self.assertFalse(self.qubo.check_vadility(solution))
+
+    def test_check_vadility_with_missing_bin_assignment(self) -> None:
+        x = np.array(
+            [
+                [0, 0, 0],  # missing bin assignment
+                [1, 0, 0],
+                [0, 1, 0],
+                [0, 0, 1],
+            ]
+        ).flatten()
+        y = np.array([1, 1, 1])
+        solution = np.concatenate((x, y, np.zeros(9)))
+        self.assertFalse(self.qubo.check_vadility(solution))
+
+    def test_check_vadility_with_capacity_exceed(self) -> None:
+        x = np.array(
+            [
+                [1, 0, 0],
+                [1, 0, 0],
+                [1, 0, 0],
+                [1, 0, 0],
+            ]
+        ).flatten()
+        y = np.array([1, 0, 0])
+        solution = np.concatenate((x, y, np.zeros(9)))
+        self.assertFalse(self.qubo.check_vadility(solution))
+
+    def test_check_vadility_with_bin_selection_mismatch(self) -> None:
+        x = np.array(
+            [
+                [1, 0, 0],
+                [1, 0, 0],
+                [0, 1, 0],
+                [0, 0, 1],  # not selected in y
+            ]
+        ).flatten()
+        y = np.array([1, 1, 0])
+        solution = np.concatenate((x, y, np.zeros(9)))
+        self.assertFalse(self.qubo.check_vadility(solution))
+
     def test_Q_size(self) -> None:
         self.assertEqual(self.qubo.Q_size, len(self.qubo.x_hat_labels))
 
