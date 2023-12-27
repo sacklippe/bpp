@@ -2,6 +2,7 @@ import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import ArrayLike
+from bpp.qubo import Qubo
 
 
 def visu_mat(matrix: ArrayLike, n_colors: int = 10) -> None:
@@ -40,3 +41,45 @@ def visu_mat(matrix: ArrayLike, n_colors: int = 10) -> None:
         ax.hlines(y + 0.5, xmin=xlim[0], xmax=xlim[1], color="grey", lw=0.2, ls=":")
 
     plt.show()
+
+
+def plot_bins(solution_vector: ArrayLike, qubo: Qubo):
+    n_items = qubo.n_items
+    n_bins = qubo.n_bins
+    bins = qubo.bin_capacities
+    items = qubo.weights
+
+    mat = np.array(solution_vector)[: n_items * n_bins]
+    mat = mat.reshape((n_items, n_bins))
+
+    fig, ax = plt.subplots()
+    for bin in range(n_bins):
+        capacity = bins[bin]
+        ax.bar(
+            str(bin),
+            capacity,
+            bottom=0,
+            color="lightgray",
+            edgecolor="black",
+            linewidth=1,
+            alpha=0.5,
+        )
+
+        mask = mat[:, bin] == 1
+        idx_lst = np.array(range(n_items))[mask]
+        w0 = 0
+
+        for idx in idx_lst:
+            weight = items[idx]
+
+            ax.bar(str(bin), weight, bottom=w0, alpha=0.5)
+            w0 += weight
+
+            ax.text(
+                str(bin),
+                w0 - weight / 2,
+                str(idx),
+                ha="center",
+                va="center",
+                color="white",
+            )
