@@ -166,7 +166,7 @@ class Qubo:
         for j in range(self.n_bins):
             for k in range(self.N[j]):
                 i_glob = self.s2global(j, k)
-                Q3_IC[i_glob, i_glob] += self.lambda_IC[j] * 2**(2 * k)
+                Q3_IC[i_glob, i_glob] += self.lambda_IC[j] * 2 ** (2 * k)
                 for k2 in range(k + 1, self.N[j]):
                     j_glob = self.s2global(j, k2)
                     Q3_IC[i_glob, j_glob] += 2 * self.lambda_IC[j] * 2 ** (k + k2)
