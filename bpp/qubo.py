@@ -59,6 +59,18 @@ class Qubo:
         self.lambda_EC = lambda_EC
         self.lambda_IC = lambda_IC
 
+    @classmethod
+    def from_json(cls, src: os.PathLike = CONFIG_FILE) -> Qubo:
+        with open(src) as f:
+            data = json.load(f)
+
+        items = np.array(data["items"])
+        bins = np.array(data["bins"])
+        lambda_EC = np.array(data["lambda_EC"]) if "lambda_EC" in data else None
+        lambda_IC = np.array(data["lambda_IC"]) if "lambda_IC" in data else None
+
+        return cls(items, bins, lambda_EC=lambda_EC, lambda_IC=lambda_IC)
+
     @property
     def n_bins(self) -> int:
         return self.bin_capacities.shape[0]
