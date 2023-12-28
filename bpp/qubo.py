@@ -1,8 +1,15 @@
+from __future__ import annotations
+
 import itertools
+import json
+import os
+import pathlib
 from typing import Any
 
 import numpy as np
 from numpy.typing import ArrayLike
+
+CONFIG_FILE = pathlib.Path(__file__).parent / "config.json"
 
 
 class Qubo:
@@ -10,13 +17,21 @@ class Qubo:
         self,
         weights: ArrayLike,
         bin_capacities: ArrayLike,
-        lambda_EC: ArrayLike,
-        lambda_IC: ArrayLike,
+        lambda_EC: None | ArrayLike = None,
+        lambda_IC: None | ArrayLike = None,
     ) -> None:
         weights = np.array(weights)
         bin_capacities = np.array(bin_capacities)
-        lambda_EC = np.array(lambda_EC)
-        lambda_IC = np.array(lambda_IC)
+
+        if lambda_EC is None:
+            lambda_EC = np.ones(bin_capacities.shape)
+        else:
+            lambda_EC = np.array(lambda_EC)
+
+        if lambda_IC is None:
+            lambda_IC = np.ones(weights.shape)
+        else:
+            lambda_IC = np.array(lambda_IC)
 
         assert len(bin_capacities.shape) == 1, "Bin capacities must be a vector"
         assert len(weights.shape) == 1, "Item weights must be a vector"
