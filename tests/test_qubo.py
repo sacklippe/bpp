@@ -1,8 +1,11 @@
+import pathlib
 import unittest
 
 import numpy as np
 
 from bpp.qubo import Qubo
+
+DATA_DIR = pathlib.Path(__file__).parent / "data"
 
 
 class TestQubo(unittest.TestCase):
@@ -20,6 +23,20 @@ class TestQubo(unittest.TestCase):
         lambda_ec = [1, 1]
         lambda_ic = [1, 1]
         self.qubo_concrete = Qubo(items, bins, lambda_ec, lambda_ic)
+
+    def test_from_json_default_config(self) -> None:
+        Qubo.from_json()  # loads from config.json file
+
+    def test_from_json_test_file(self) -> None:
+        qubo = Qubo.from_json(DATA_DIR / "test_config.json")
+        items = [1, 2, 3, 4, 5]
+        bins = [6, 7, 8, 9, 10]
+        lambda_ec = [11, 12, 13, 14, 15]
+        lambda_ic = [16, 17, 18, 19, 20]
+        self.assertListEqual(items, list(qubo.weights))
+        self.assertListEqual(bins, list(qubo.bin_capacities))
+        self.assertListEqual(lambda_ec, list(qubo.lambda_EC))
+        self.assertListEqual(lambda_ic, list(qubo.lambda_IC))
 
     def test_n_bins(self) -> None:
         self.assertEqual(self.qubo.n_bins, 3)
