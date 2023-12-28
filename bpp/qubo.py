@@ -9,7 +9,7 @@ from typing import Any
 import numpy as np
 from numpy.typing import ArrayLike
 
-CONFIG_FILE = pathlib.Path(__file__).parent / "config.json"
+CONFIG_FILE = pathlib.Path(__file__).parent.parent / "config.json"
 
 
 class Qubo:
@@ -24,12 +24,12 @@ class Qubo:
         bin_capacities = np.array(bin_capacities)
 
         if lambda_EC is None:
-            lambda_EC = np.ones(bin_capacities.shape)
+            lambda_EC = np.ones(weights.shape)
         else:
             lambda_EC = np.array(lambda_EC)
 
         if lambda_IC is None:
-            lambda_IC = np.ones(weights.shape)
+            lambda_IC = np.ones(bin_capacities.shape)
         else:
             lambda_IC = np.array(lambda_IC)
 
